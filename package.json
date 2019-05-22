@@ -1,0 +1,19 @@
+{
+
+    "name": "cn.capstones.phfont",
+
+    "displayName": "Capstone Replaceable Font",
+
+    "version": "0.0.1",
+
+    "unity": "2018.3",
+
+    "description": "Capstone Replaceable Font",
+
+    "keywords": [
+        "unity"
+    ],
+
+    "category": "Unity"
+
+}

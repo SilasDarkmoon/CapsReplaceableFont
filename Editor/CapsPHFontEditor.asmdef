@@ -1,0 +1,19 @@
+{
+    "name": "CapsPHFontEditor",
+    "references": [
+        "ResManager",
+        "ResManagerEditor",
+        "JsonObject",
+        "CapsPHFont"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": []
+}
