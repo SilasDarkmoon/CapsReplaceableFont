@@ -11,10 +11,10 @@ namespace Capstones.UnityEditorEx
     [InitializeOnLoad]
     public static class CapsPHFontEditor
     {
-        private static readonly Dictionary<string, string> _PHFontNameToAssetName = new Dictionary<string, string>();
-        private static readonly Dictionary<string, string> _PHFontAssetNameToFontName = new Dictionary<string, string>();
+        internal static readonly Dictionary<string, string> _PHFontNameToAssetName = new Dictionary<string, string>();
+        internal static readonly Dictionary<string, string> _PHFontAssetNameToFontName = new Dictionary<string, string>();
 
-        private class FontReplacement
+        internal class FontReplacement
         {
             public string PlaceHolderFontName;
             public Font SubstituteFont;
@@ -24,9 +24,9 @@ namespace Capstones.UnityEditorEx
             public string Dist;
         }
         // ph-font-name -> List<FontReplacement>
-        private static readonly Dictionary<string, List<FontReplacement>> _FontReplacements = new Dictionary<string, List<FontReplacement>>();
+        internal static readonly Dictionary<string, List<FontReplacement>> _FontReplacements = new Dictionary<string, List<FontReplacement>>();
         // CapsFontReplacement's path -> FontReplacement
-        private static readonly Dictionary<string, FontReplacement> _FontReplacementDescs = new Dictionary<string, FontReplacement>();
+        internal static readonly Dictionary<string, FontReplacement> _FontReplacementDescs = new Dictionary<string, FontReplacement>();
 
         public static string GetDefaultPHFontAssetPath()
         {
