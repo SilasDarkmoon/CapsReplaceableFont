@@ -517,7 +517,7 @@ namespace Capstones.UnityEditorEx
             }
         }
 
-        [MenuItem("Assets/Create/Place Holder Font", priority = 1011)]
+        [MenuItem("Assets/Create/Place Holder Font", priority = 2011)]
         public static void CreatePlaceHolderFont()
         {
             var srcpath = CapsModEditor.GetPackageOrModRoot(CapsEditorUtils.__MOD__);
@@ -601,7 +601,7 @@ namespace Capstones.UnityEditorEx
             }
         }
 
-        [MenuItem("Assets/Create/Font Replacement", priority = 1010)]
+        [MenuItem("Assets/Create/Font Replacement", priority = 2010)]
         public static void CreateFontReplacement()
         {
             var sids = Selection.instanceIDs;
@@ -754,7 +754,7 @@ namespace Capstones.UnityEditorEx
                 {
                     for (int i = 0; i < movedAssets.Length; ++i)
                     {
-                        var asset = importedAssets[i];
+                        var asset = movedAssets[i];
                         if (asset.EndsWith(".phf.asset"))
                         {
                             dirty = AddPHFont(asset) || dirty;

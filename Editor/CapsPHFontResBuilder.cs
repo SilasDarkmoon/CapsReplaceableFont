@@ -161,6 +161,11 @@ namespace Capstones.UnityEditorEx
                 }
             }
         }
+
+        public bool GenerateBuildWork(string bundleName, IList<string> assets, ref AssetBundleBuild work)
+        {
+            return false;
+        }
     }
 
     [InitializeOnLoad]
