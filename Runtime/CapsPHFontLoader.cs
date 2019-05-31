@@ -20,9 +20,24 @@ namespace Capstones.UnityEngineEx
             _RDesc = ResManager.LoadRes("font/replacement");
         }
 
-        [RuntimeInitializeOnLoadMethod]
+        private class CapsPHFontLoaderBundleLoaderEx : ResManager.IAssetBundleLoaderEx
+        {
+            public bool LoadAssetBundle(string mod, string name, bool isContainingBundle, out ResManager.AssetBundleInfo bi)
+            {
+                bi = null;
+                if (!isContainingBundle && name.EndsWith(".=.ab"))
+                { // this special name means the assetbundle should not be dep of other bundle. for example, replaceable font.
+                    return true;
+                }
+                return false;
+            }
+        }
+        private static CapsPHFontLoaderBundleLoaderEx __CapsPHFontLoaderBundleLoaderEx = new CapsPHFontLoaderBundleLoaderEx();
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void OnUnityStart()
         {
+            ResManager.AssetBundleLoaderEx.Add(__CapsPHFontLoaderBundleLoaderEx);
 #if !UNITY_EDITOR
             ResManager.AddInitItem(ResManager.LifetimeOrders.PostResLoader - 5, LoadFont);
 #endif
