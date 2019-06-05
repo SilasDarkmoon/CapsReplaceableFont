@@ -15,7 +15,7 @@ namespace Capstones.UnityEditorEx
         private HashSet<string> _ReplacementFonts;
         private HashSet<string> _ReplacementDescs;
 
-        public void Prepare()
+        public void Prepare(string output)
         {
             CapsPHFontEditor.ReplaceAllPHFonts();
             _PHFonts = new HashSet<string>();
@@ -55,6 +55,9 @@ namespace Capstones.UnityEditorEx
             _ReplacementFonts = null;
             _ReplacementDescs = null;
             CapsPHFontEditor.ReplaceRuntimePHFonts();
+        }
+        public void OnSuccess()
+        {
         }
 
         private class BuildingItemInfo
@@ -162,9 +165,8 @@ namespace Capstones.UnityEditorEx
             }
         }
 
-        public bool GenerateBuildWork(string bundleName, IList<string> assets, ref AssetBundleBuild work)
+        public void GenerateBuildWork(string bundleName, IList<string> assets, ref AssetBundleBuild abwork, CapsResBuilder.CapsResBuildWork modwork, int abindex)
         {
-            return false;
         }
     }
 
