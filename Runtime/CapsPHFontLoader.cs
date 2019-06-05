@@ -38,9 +38,11 @@ namespace Capstones.UnityEngineEx
         private static void OnUnityStart()
         {
             ResManager.AssetBundleLoaderEx.Add(__CapsPHFontLoaderBundleLoaderEx);
-#if !UNITY_EDITOR
-            ResManager.AddInitItem(ResManager.LifetimeOrders.PostResLoader - 5, LoadFont);
-#endif
+
+            if (ResManager.ResLoader is ResManager.ClientResLoader)
+            {
+                ResManager.AddInitItem(ResManager.LifetimeOrders.PostResLoader - 5, LoadFont);
+            }
         }
     }
 }
