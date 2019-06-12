@@ -10,18 +10,18 @@ namespace Capstones.UnityEditorEx
 {
     public class CapsPHFontResBuilder : CapsResBuilder.IResBuilderEx
     {
-        private HashSet<string> _PHFonts;
-        private HashSet<string> _PHFontDescs;
-        private HashSet<string> _ReplacementFonts;
-        private HashSet<string> _ReplacementDescs;
+        private HashSet<string> _PHFonts = new HashSet<string>();
+        private HashSet<string> _PHFontDescs = new HashSet<string>();
+        private HashSet<string> _ReplacementFonts = new HashSet<string>();
+        private HashSet<string> _ReplacementDescs = new HashSet<string>();
 
         public void Prepare(string output)
         {
             CapsPHFontEditor.ReplaceAllPHFonts();
-            _PHFonts = new HashSet<string>();
-            _PHFontDescs = new HashSet<string>();
-            _ReplacementFonts = new HashSet<string>();
-            _ReplacementDescs = new HashSet<string>();
+            _PHFonts.Clear();
+            _PHFontDescs.Clear();
+            _ReplacementFonts.Clear();
+            _ReplacementDescs.Clear();
             foreach (var phpath in CapsPHFontEditor._PHFontAssetNameToFontName.Keys)
             {
                 _PHFonts.Add(phpath);
@@ -50,10 +50,10 @@ namespace Capstones.UnityEditorEx
         }
         public void Cleanup()
         {
-            _PHFonts = null;
-            _PHFontDescs = null;
-            _ReplacementFonts = null;
-            _ReplacementDescs = null;
+            _PHFonts.Clear();
+            _PHFontDescs.Clear();
+            _ReplacementFonts.Clear();
+            _ReplacementDescs.Clear();
             CapsPHFontEditor.ReplaceRuntimePHFonts();
         }
         public void OnSuccess()
