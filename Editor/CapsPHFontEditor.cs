@@ -602,6 +602,10 @@ namespace Capstones.UnityEditorEx
                 {
                     SaveCachedReplacement();
                 }
+                if (dirty || rdirty)
+                {
+                    AssetDatabase.Refresh();
+                }
             }
         }
     }
