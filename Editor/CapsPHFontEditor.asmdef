@@ -4,7 +4,8 @@
         "ResManager",
         "ResManagerEditor",
         "JsonObject",
-        "CapsPHFont"
+        "CapsPHFont",
+        "ResManagerEditorEntry"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [

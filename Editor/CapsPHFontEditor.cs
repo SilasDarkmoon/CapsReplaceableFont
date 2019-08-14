@@ -8,12 +8,13 @@ using Capstones.UnityEngineEx;
 
 namespace Capstones.UnityEditorEx
 {
+    [InitializeOnLoad]
     public static class CapsPHFontEditor
     {
-        private static readonly Dictionary<string, string> _PHFontNameToAssetName = new Dictionary<string, string>();
-        private static readonly Dictionary<string, string> _PHFontAssetNameToFontName = new Dictionary<string, string>();
+        internal static readonly Dictionary<string, string> _PHFontNameToAssetName = new Dictionary<string, string>();
+        internal static readonly Dictionary<string, string> _PHFontAssetNameToFontName = new Dictionary<string, string>();
 
-        private class FontReplacement
+        internal class FontReplacement
         {
             public string PlaceHolderFontName;
             public Font SubstituteFont;
@@ -23,9 +24,24 @@ namespace Capstones.UnityEditorEx
             public string Dist;
         }
         // ph-font-name -> List<FontReplacement>
-        private static readonly Dictionary<string, List<FontReplacement>> _FontReplacements = new Dictionary<string, List<FontReplacement>>();
+        internal static readonly Dictionary<string, List<FontReplacement>> _FontReplacements = new Dictionary<string, List<FontReplacement>>();
         // CapsFontReplacement's path -> FontReplacement
-        private static readonly Dictionary<string, FontReplacement> _FontReplacementDescs = new Dictionary<string, FontReplacement>();
+        internal static readonly Dictionary<string, FontReplacement> _FontReplacementDescs = new Dictionary<string, FontReplacement>();
+
+        public static string GetDefaultPHFontAssetPath()
+        {
+            string fname = "CapstonesPHFont99999";
+            string asset = null;
+            foreach (var kvp in _PHFontNameToAssetName)
+            {
+                if (string.Compare(kvp.Key, fname) < 0)
+                {
+                    fname = kvp.Key;
+                    asset = kvp.Value;
+                }
+            }
+            return asset ?? "CapstonesPHFont00001";
+        }
 
         static CapsPHFontEditor()
         {
@@ -42,18 +58,26 @@ namespace Capstones.UnityEditorEx
                 CheckAllPHFonts();
                 SaveCachedPHFonts();
             }
-            if (PlatDependant.IsFileExist("EditorOutput/Runtime/rfont.txt"))
+
+            CapsModEditor.ShouldAlreadyInit();
+            CapsPackageEditor.OnPackagesChanged += () =>
             {
-                if (LoadCachedReplacement())
+                if (PlatDependant.IsFileExist("EditorOutput/Runtime/rfont.txt"))
                 {
+                    if (LoadCachedReplacement())
+                    {
+                        SaveCachedReplacement();
+                    }
+                }
+                else
+                {
+                    CheckAllReplacements();
                     SaveCachedReplacement();
                 }
-            }
-            else
-            {
-                CheckAllReplacements();
-                SaveCachedReplacement();
-            }
+
+                ReplaceRuntimePHFonts();
+            };
+            CapsDistributeEditor.OnDistributeFlagsChanged += ReplaceRuntimePHFonts;
         }
         private static void ParseCachedPHFonts()
         {
@@ -269,6 +293,10 @@ namespace Capstones.UnityEditorEx
                             list.RemoveAt(i--);
                         }
                     }
+                    if (list.Count == 0)
+                    {
+                        _FontReplacements.Remove(info.PlaceHolderFontName);
+                    }
                 }
                 return true;
             }
@@ -334,7 +362,162 @@ namespace Capstones.UnityEditorEx
             }
         }
 
-        [MenuItem("Assets/Create/Place Holder Font", priority = 1011)]
+        private static Dictionary<string, Dictionary<string, FontReplacement>> GetFontReplacementDMFDict(string fname)
+        {
+            // dist -> mod -> FontReplacement
+            Dictionary<string, Dictionary<string, FontReplacement>> dmfr = new Dictionary<string, Dictionary<string, FontReplacement>>();
+            List<FontReplacement> list;
+            if (_FontReplacements.TryGetValue(fname, out list))
+            {
+                for (int i = 0; i < list.Count; ++i)
+                {
+                    var info = list[i];
+                    var mod = info.Mod ?? "";
+                    var dist = info.Dist ?? "";
+                    // check critical mod
+                    var moddesc = ResManager.GetDistributeDesc(mod);
+                    var inPackage = (info.DescAssetPath ?? "").StartsWith("Packages/");
+                    bool isMainPackage = inPackage && !CapsModEditor.ShouldTreatPackageAsMod(CapsModEditor.GetPackageName(mod));
+                    if (moddesc == null || !moddesc.IsOptional || isMainPackage)
+                    {
+                        mod = "";
+                    }
+
+                    Dictionary<string, FontReplacement> mdict;
+                    if (!dmfr.TryGetValue(dist, out mdict))
+                    {
+                        mdict = new Dictionary<string, FontReplacement>();
+                        dmfr[dist] = mdict;
+                    }
+                    mdict[mod] = info;
+                }
+            }
+            return dmfr;
+        }
+        private static List<string> GetFallbackFontNames(string fname, IList<string> flags)
+        {
+            // dist -> mod -> FontReplacement
+            var dmfr = GetFontReplacementDMFDict(fname);
+            List<string> list = new List<string>() { fname };
+            if (flags != null)
+            {
+                for (int i = flags.Count - 1; i >= 0; --i)
+                {
+                    var flag = flags[i];
+                    Dictionary<string, FontReplacement> mdict;
+                    if (dmfr.TryGetValue(flag, out mdict))
+                    {
+                        for (int j = flags.Count - 1; j >= 0; --j)
+                        {
+                            var mod = flags[j];
+                            if (mdict.ContainsKey(mod))
+                            {
+                                var info = mdict[mod];
+                                if (info != null && info.SubstituteFont != null)
+                                {
+                                    var path = AssetDatabase.GetAssetPath(info.SubstituteFont);
+                                    if (!string.IsNullOrEmpty(path))
+                                    {
+                                        var fi = AssetImporter.GetAtPath(path) as TrueTypeFontImporter;
+                                        if (fi != null)
+                                        {
+                                            var rfname = fi.fontTTFName;
+                                            if (!string.IsNullOrEmpty(rfname))
+                                            {
+                                                list.Add(rfname);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return list;
+        }
+        private static bool ListEquals(IList<string> lsta, IList<string> lstb)
+        {
+            if (lsta == null || lsta.Count == 0)
+            {
+                return lstb == null || lstb.Count == 0;
+            }
+            if (lstb == null || lstb.Count == 0)
+            {
+                return false;
+            }
+            if (lsta.Count != lstb.Count)
+            {
+                return false;
+            }
+            for (int i = 0; i < lsta.Count; ++i)
+            {
+                if (lsta[i] != lstb[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        public static void ReplaceRuntimePHFonts()
+        {
+            foreach (var kvp in _PHFontNameToAssetName)
+            {
+                List<string> flags = new List<string>() { "" };
+                flags.AddRange(ResManager.GetValidDistributeFlags());
+                var list = GetFallbackFontNames(kvp.Key, flags.ToArray());
+
+                var fiph = AssetImporter.GetAtPath(kvp.Value) as TrueTypeFontImporter;
+                if (fiph != null)
+                {
+                    if (!ListEquals(fiph.fontNames, list))
+                    {
+                        fiph.fontNames = list.ToArray();
+                        fiph.fontReferences = null;
+                        EditorUtility.SetDirty(fiph);
+                        AssetDatabase.WriteImportSettingsIfDirty(kvp.Value);
+                        AssetDatabase.ImportAsset(kvp.Value);
+                        AssetDatabase.Refresh();
+                        Resources.UnloadAsset(AssetDatabase.LoadAssetAtPath<Font>(kvp.Value));
+                    }
+                }
+            }
+        }
+        public static void ReplaceAllPHFonts()
+        {
+            foreach (var kvp in _PHFontNameToAssetName)
+            {
+                List<string> flags = new List<string>() { "" };
+                var allflags = CapsDistributeEditor.GetOptionalDistributes();
+                for (int i = 0; i < allflags.Length; ++i)
+                {
+                    var flag = allflags[i];
+                    if (!ResManager.GetValidDistributeFlagsSet().Contains(flag))
+                    {
+                        flags.Add(flag);
+                    }
+                }
+                flags.AddRange(ResManager.GetValidDistributeFlags());
+                var list = GetFallbackFontNames(kvp.Key, flags.ToArray());
+
+                var fiph = AssetImporter.GetAtPath(kvp.Value) as TrueTypeFontImporter;
+                if (fiph != null)
+                {
+                    if (!ListEquals(fiph.fontNames, list))
+                    {
+                        fiph.fontNames = list.ToArray();
+                        fiph.fontReferences = null;
+                        EditorUtility.SetDirty(fiph);
+                        AssetDatabase.WriteImportSettingsIfDirty(kvp.Value);
+                        AssetDatabase.ImportAsset(kvp.Value);
+                        AssetDatabase.Refresh();
+                    }
+                }
+            }
+        }
+
+        [MenuItem("Assets/Create/Place Holder Font", priority = 2011)]
         public static void CreatePlaceHolderFont()
         {
             var srcpath = CapsModEditor.GetPackageOrModRoot(CapsEditorUtils.__MOD__);
@@ -418,7 +601,7 @@ namespace Capstones.UnityEditorEx
             }
         }
 
-        [MenuItem("Assets/Create/Font Replacement", priority = 1010)]
+        [MenuItem("Assets/Create/Font Replacement", priority = 2010)]
         public static void CreateFontReplacement()
         {
             var sids = Selection.instanceIDs;
@@ -495,7 +678,7 @@ namespace Capstones.UnityEditorEx
 
         private static string GetFontReplacementPHFontName(string asset)
         {
-            if (_FontReplacements.Count == 0)
+            if (_PHFontNameToAssetName.Count == 0)
             {
                 Debug.LogError("No Place Holder Font to Replace!");
                 return null;
@@ -505,23 +688,26 @@ namespace Capstones.UnityEditorEx
             string norm = ResManager.GetAssetNormPath(asset, out type, out mod, out dist);
 
             FontReplacement found = null;
-            foreach (var kvp in _FontReplacements)
+            foreach (var fname in _PHFontNameToAssetName.Keys)
             {
-                var list = kvp.Value;
                 bool exist = false;
-                for (int i = 0; i < list.Count; ++i)
+                List<FontReplacement> list;
+                if (_FontReplacements.TryGetValue(fname, out list))
                 {
-                    var info = list[i];
-                    if (info.Mod == mod && info.Dist == dist)
+                    for (int i = 0; i < list.Count; ++i)
                     {
-                        found = info;
-                        exist = true;
-                        break;
+                        var info = list[i];
+                        if (info.Mod == mod && info.Dist == dist)
+                        {
+                            found = info;
+                            exist = true;
+                            break;
+                        }
                     }
                 }
                 if (!exist)
                 {
-                    return kvp.Key;
+                    return fname;
                 }
             }
             Debug.LogError("All Place Holder Font are already replaced in current Mod&Dist! See " + found.DescAssetPath);
@@ -568,7 +754,7 @@ namespace Capstones.UnityEditorEx
                 {
                     for (int i = 0; i < movedAssets.Length; ++i)
                     {
-                        var asset = importedAssets[i];
+                        var asset = movedAssets[i];
                         if (asset.EndsWith(".phf.asset"))
                         {
                             dirty = AddPHFont(asset) || dirty;
