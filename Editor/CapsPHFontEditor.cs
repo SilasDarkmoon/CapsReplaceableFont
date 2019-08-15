@@ -714,6 +714,23 @@ namespace Capstones.UnityEditorEx
             return null;
         }
 
+        [MenuItem("Mods/Client Update Fix - Font", priority = 100010)]
+        public static void UpdateFixPHFont()
+        {
+            var phfonts = _PHFontAssetNameToFontName.Keys.ToArray();
+            for (int i = 0; i < phfonts.Length; ++i)
+            {
+                var asset = phfonts[i];
+                AssetDatabase.DeleteAsset(asset);
+            }
+            AssetDatabase.Refresh();
+            for (int i = 0; i < phfonts.Length; ++i)
+            {
+                var asset = phfonts[i];
+                AssetDatabase.ImportAsset(asset.Substring(0, asset.Length - ".otf".Length) + ".phf.asset", ImportAssetOptions.ForceUpdate);
+            }
+        }
+
         private class CapsPHFontPostprocessor : AssetPostprocessor
         {
             private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
