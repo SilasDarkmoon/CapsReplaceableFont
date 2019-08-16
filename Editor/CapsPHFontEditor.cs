@@ -132,9 +132,9 @@ namespace Capstones.UnityEditorEx
                 {
                     if (!CachePHFont(font))
                     {
-                        var path = _PHFontNameToAssetName[font];
-                        _PHFontNameToAssetName.Remove(font);
-                        _PHFontAssetNameToFontName.Remove(path);
+                        var fname = _PHFontAssetNameToFontName[font];
+                        _PHFontNameToAssetName.Remove(fname);
+                        _PHFontAssetNameToFontName.Remove(font);
                         dirty = true;
                     }
                 }
