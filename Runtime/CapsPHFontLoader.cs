@@ -18,6 +18,8 @@ namespace Capstones.UnityEngineEx
         {
             _PHDesc = ResManager.LoadRes("font/placeholder");
             _RDesc = ResManager.LoadRes("font/replacement");
+            ResManager.MarkPermanent("font/placeholder");
+            ResManager.MarkPermanent("font/replacement");
         }
 
         private class CapsPHFontLoaderBundleLoaderEx : ResManager.IAssetBundleLoaderEx
