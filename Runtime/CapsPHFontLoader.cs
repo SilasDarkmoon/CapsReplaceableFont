@@ -33,9 +33,6 @@ namespace Capstones.UnityEngineEx
                 }
                 return false;
             }
-
-            public void PreUnloadUnusedRes() { }
-            public void PostUnloadUnusedRes() { }
         }
         private static CapsPHFontLoaderBundleLoaderEx __CapsPHFontLoaderBundleLoaderEx = new CapsPHFontLoaderBundleLoaderEx();
 
