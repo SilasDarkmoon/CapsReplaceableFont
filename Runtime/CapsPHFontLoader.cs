@@ -16,10 +16,32 @@ namespace Capstones.UnityEngineEx
 
         public static void LoadFont()
         {
-            _PHDesc = ResManager.LoadRes("font/placeholder");
-            _RDesc = ResManager.LoadRes("font/replacement");
-            ResManager.MarkPermanent("font/placeholder");
-            ResManager.MarkPermanent("font/replacement");
+            var infoasset = ResManager.LoadRes("font/info") as TextAsset;
+            if (infoasset)
+            {
+                var info = infoasset.text;
+                int phcnt;
+                if (int.TryParse(info, out phcnt))
+                {
+                    for (int i = 0; i < phcnt; ++i)
+                    {
+                        var strindex = i.ToString();
+                        var phname = "font/placeholder" + strindex;
+                        var rpname = "font/replacement" + strindex;
+                        _PHDesc = ResManager.LoadRes(phname);
+                        _RDesc = ResManager.LoadRes(rpname);
+                        ResManager.MarkPermanent(phname);
+                        ResManager.MarkPermanent(rpname);
+                    }
+                }
+            }
+            else
+            {
+                _PHDesc = ResManager.LoadRes("font/placeholder");
+                _RDesc = ResManager.LoadRes("font/replacement");
+                ResManager.MarkPermanent("font/placeholder");
+                ResManager.MarkPermanent("font/replacement");
+            }
         }
 
         private class CapsPHFontLoaderBundleLoaderEx : ResManager.IAssetBundleLoaderEx

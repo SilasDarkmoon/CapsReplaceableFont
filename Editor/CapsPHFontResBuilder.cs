@@ -14,6 +14,9 @@ namespace Capstones.UnityEditorEx
         private HashSet<string> _PHFontDescs = new HashSet<string>();
         private HashSet<string> _ReplacementFonts = new HashSet<string>();
         private HashSet<string> _ReplacementDescs = new HashSet<string>();
+        private string _InfoFile;
+        private int _PlaceHolderIndex;
+        private int _ReplacementIndex;
 
         public void Prepare(string output)
         {
@@ -47,9 +50,27 @@ namespace Capstones.UnityEditorEx
                 }
             }
             _ReplacementDescs.UnionWith(CapsPHFontEditor._FontReplacementDescs.Keys);
+
+            var curmod = CapsEditorUtils.__MOD__;
+            var infofile = "Assets/Mods/" + curmod + "/CapsRes/Build/phfinfo.txt";
+            if (_PHFontDescs.Count == 0)
+            {
+                _InfoFile = null;
+                PlatDependant.DeleteFile(infofile);
+            }
+            else
+            {
+                _InfoFile = infofile;
+                PlatDependant.WriteAllText(infofile, _PHFontDescs.Count.ToString());
+            }
+            _PlaceHolderIndex = 0;
+            _ReplacementIndex = 0;
         }
         public void Cleanup()
         {
+            _InfoFile = null;
+            _PlaceHolderIndex = 0;
+            _ReplacementIndex = 0;
             _PHFonts.Clear();
             _PHFontDescs.Clear();
             _ReplacementFonts.Clear();
@@ -136,9 +157,32 @@ namespace Capstones.UnityEditorEx
                 newitem.Ref = item;
                 newnode.Item = newitem;
 
+                if (string.Equals(asset, _InfoFile))
+                {
+                    newpath = rootpath + "info";
+                    newnode = item.Manifest.AddOrGetItem(newpath);
+                    if (newnode.Item == null)
+                    {
+                        newitem = new CapsResManifestItem(newnode);
+                        newitem.Type = (int)CapsResManifestItemType.Redirect;
+                        newitem.BRef = item.BRef;
+                        newitem.Ref = item;
+                        newnode.Item = newitem;
+                    }
+                }
                 if (_PHFontDescs.Contains(asset))
                 {
                     newpath = rootpath + "placeholder";
+                    newnode = item.Manifest.AddOrGetItem(newpath);
+                    if (newnode.Item == null)
+                    {
+                        newitem = new CapsResManifestItem(newnode);
+                        newitem.Type = (int)CapsResManifestItemType.Redirect;
+                        newitem.BRef = item.BRef;
+                        newitem.Ref = item;
+                        newnode.Item = newitem;
+                    }
+                    newpath = rootpath + "placeholder" + (_PlaceHolderIndex++).ToString();
                     newnode = item.Manifest.AddOrGetItem(newpath);
                     if (newnode.Item == null)
                     {
@@ -152,6 +196,16 @@ namespace Capstones.UnityEditorEx
                 else if (_ReplacementDescs.Contains(asset))
                 {
                     newpath = rootpath + "replacement";
+                    newnode = item.Manifest.AddOrGetItem(newpath);
+                    if (newnode.Item == null)
+                    {
+                        newitem = new CapsResManifestItem(newnode);
+                        newitem.Type = (int)CapsResManifestItemType.Redirect;
+                        newitem.BRef = item.BRef;
+                        newitem.Ref = item;
+                        newnode.Item = newitem;
+                    }
+                    newpath = rootpath + "replacement" + (_ReplacementIndex++).ToString();
                     newnode = item.Manifest.AddOrGetItem(newpath);
                     if (newnode.Item == null)
                     {
