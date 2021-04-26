@@ -10,13 +10,11 @@ namespace Capstones.UnityEditorEx
 {
     public class CapsPHFontResBuilder : CapsResBuilder.IResBuilderEx
     {
-        private HashSet<string> _PHFonts = new HashSet<string>();
-        private HashSet<string> _PHFontDescs = new HashSet<string>();
-        private HashSet<string> _ReplacementFonts = new HashSet<string>();
-        private HashSet<string> _ReplacementDescs = new HashSet<string>();
+        private Dictionary<string, int> _PHFonts = new Dictionary<string, int>();
+        private Dictionary<string, int> _PHFontDescs = new Dictionary<string, int>();
+        private Dictionary<string, int> _ReplacementFonts = new Dictionary<string, int>();
+        private Dictionary<string, int> _ReplacementDescs = new Dictionary<string, int>();
         private string _InfoFile;
-        private int _PlaceHolderIndex;
-        private int _ReplacementIndex;
 
         public void Prepare(string output)
         {
@@ -25,31 +23,40 @@ namespace Capstones.UnityEditorEx
             _PHFontDescs.Clear();
             _ReplacementFonts.Clear();
             _ReplacementDescs.Clear();
+            int phindex = 0;
             foreach (var phpath in CapsPHFontEditor._PHFontAssetNameToFontName.Keys)
             {
-                _PHFonts.Add(phpath);
+                var curphindex = phindex++;
+                _PHFonts[phpath] = curphindex;
                 if (phpath.EndsWith(".otf"))
                 {
                     var phdesc = phpath.Substring(0, phpath.Length - ".otf".Length) + ".phf.asset";
-                    _PHFontDescs.Add(phdesc);
+                    _PHFontDescs[phdesc] = curphindex;
                 }
             }
-            foreach (var phpath in _PHFonts)
+            foreach (var kvpph in _PHFonts)
             {
+                var phpath = kvpph.Key;
+                var curphindex = kvpph.Value;
                 var deps = AssetDatabase.GetDependencies(phpath);
                 if (deps != null)
                 {
                     for (int i = 0; i < deps.Length; ++i)
                     {
                         var dep = deps[i];
-                        if (!_PHFonts.Contains(dep))
+                        if (!_PHFonts.ContainsKey(dep))
                         {
-                            _ReplacementFonts.Add(dep);
+                            _ReplacementFonts[dep] = curphindex;
                         }
                     }
                 }
             }
-            _ReplacementDescs.UnionWith(CapsPHFontEditor._FontReplacementDescs.Keys);
+            foreach (var kvprpinfo in CapsPHFontEditor._FontReplacementDescs)
+            {
+                var rpdescpath = kvprpinfo.Key;
+                var curphindex = _PHFonts[CapsPHFontEditor._PHFontNameToAssetName[kvprpinfo.Value.PlaceHolderFontName]];
+                _ReplacementDescs[rpdescpath] = curphindex;
+            }
 
             var curmod = CapsEditorUtils.__MOD__;
             var infofile = "Assets/Mods/" + curmod + "/CapsRes/Build/phfinfo.txt";
@@ -63,14 +70,10 @@ namespace Capstones.UnityEditorEx
                 _InfoFile = infofile;
                 PlatDependant.WriteAllText(infofile, _PHFontDescs.Count.ToString());
             }
-            _PlaceHolderIndex = 0;
-            _ReplacementIndex = 0;
         }
         public void Cleanup()
         {
             _InfoFile = null;
-            _PlaceHolderIndex = 0;
-            _ReplacementIndex = 0;
             _PHFonts.Clear();
             _PHFontDescs.Clear();
             _ReplacementFonts.Clear();
@@ -93,7 +96,7 @@ namespace Capstones.UnityEditorEx
         public string FormatBundleName(string asset, string mod, string dist, string norm)
         {
             _Building = null;
-            if (_PHFonts.Contains(asset) || _PHFontDescs.Contains(asset) || _ReplacementFonts.Contains(asset) || _ReplacementDescs.Contains(asset))
+            if (string.Equals(asset, _InfoFile) ||  _PHFonts.ContainsKey(asset) || _PHFontDescs.ContainsKey(asset) || _ReplacementFonts.ContainsKey(asset) || _ReplacementDescs.ContainsKey(asset))
             {
                 _Building = new BuildingItemInfo()
                 {
@@ -119,9 +122,9 @@ namespace Capstones.UnityEditorEx
         {
             if (_Building != null)
             {
-                var node = item.Node;
-                var asset = _Building.Asset;
                 string rootpath = "Assets/CapsRes/";
+                var asset = _Building.Asset;
+                var node = item.Node;
                 bool inPackage = false;
                 if (asset.StartsWith("Assets/Mods/") || (inPackage = asset.StartsWith("Packages/")))
                 {
@@ -170,7 +173,7 @@ namespace Capstones.UnityEditorEx
                         newnode.Item = newitem;
                     }
                 }
-                if (_PHFontDescs.Contains(asset))
+                else if (_PHFontDescs.ContainsKey(asset))
                 {
                     newpath = rootpath + "placeholder";
                     newnode = item.Manifest.AddOrGetItem(newpath);
@@ -182,7 +185,7 @@ namespace Capstones.UnityEditorEx
                         newitem.Ref = item;
                         newnode.Item = newitem;
                     }
-                    newpath = rootpath + "placeholder" + (_PlaceHolderIndex++).ToString();
+                    newpath = rootpath + "placeholder" + _PHFontDescs[asset].ToString();
                     newnode = item.Manifest.AddOrGetItem(newpath);
                     if (newnode.Item == null)
                     {
@@ -193,7 +196,7 @@ namespace Capstones.UnityEditorEx
                         newnode.Item = newitem;
                     }
                 }
-                else if (_ReplacementDescs.Contains(asset))
+                else if (_ReplacementDescs.ContainsKey(asset))
                 {
                     newpath = rootpath + "replacement";
                     newnode = item.Manifest.AddOrGetItem(newpath);
@@ -205,7 +208,7 @@ namespace Capstones.UnityEditorEx
                         newitem.Ref = item;
                         newnode.Item = newitem;
                     }
-                    newpath = rootpath + "replacement" + (_ReplacementIndex++).ToString();
+                    newpath = rootpath + "replacement" + _ReplacementDescs[asset].ToString();
                     newnode = item.Manifest.AddOrGetItem(newpath);
                     if (newnode.Item == null)
                     {
