@@ -104,7 +104,7 @@ namespace Capstones.UnityEditorEx
                     Mod = mod,
                     Dist = dist,
                     Norm = norm,
-                    Bundle = "m-" + (mod ?? "") + "-d-" + (dist ?? "") + "-font.f.=.ab",
+                    Bundle = "m-" + (mod ?? "").ToLower() + "-d-" + (dist ?? "").ToLower() + "-font.f.=.ab",
                 };
                 return _Building.Bundle;
             }

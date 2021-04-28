@@ -11,11 +11,13 @@ namespace Capstones.UnityEngineEx
 {
     public static class CapsPHFontLoader
     {
-        private static Object _PHDesc;
-        private static Object _RDesc;
+        private readonly static List<Object> _PHDescs = new List<Object>();
+        private readonly static List<Object> _RPDescs = new List<Object>();;
 
         public static void LoadFont()
         {
+            _PHDescs.Clear();
+            _RPDescs.Clear();
             var infoasset = ResManager.LoadRes("font/info") as TextAsset;
             if (infoasset)
             {
@@ -28,8 +30,10 @@ namespace Capstones.UnityEngineEx
                         var strindex = i.ToString();
                         var phname = "font/placeholder" + strindex;
                         var rpname = "font/replacement" + strindex;
-                        _PHDesc = ResManager.LoadRes(phname);
-                        _RDesc = ResManager.LoadRes(rpname);
+                        var phdesc = ResManager.LoadRes(phname);
+                        var rpdesc = ResManager.LoadRes(rpname);
+                        _PHDescs.Add(phdesc);
+                        _RPDescs.Add(rpdesc);
                         ResManager.MarkPermanent(phname);
                         ResManager.MarkPermanent(rpname);
                     }
@@ -37,8 +41,10 @@ namespace Capstones.UnityEngineEx
             }
             else
             {
-                _PHDesc = ResManager.LoadRes("font/placeholder");
-                _RDesc = ResManager.LoadRes("font/replacement");
+                var phdesc = ResManager.LoadRes("font/placeholder");
+                var rpdesc = ResManager.LoadRes("font/replacement");
+                _PHDescs.Add(phdesc);
+                _RPDescs.Add(rpdesc);
                 ResManager.MarkPermanent("font/placeholder");
                 ResManager.MarkPermanent("font/replacement");
             }
