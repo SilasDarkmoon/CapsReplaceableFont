@@ -12,7 +12,7 @@ namespace Capstones.UnityEngineEx
     public static class CapsPHFontLoader
     {
         private readonly static List<Object> _PHDescs = new List<Object>();
-        private readonly static List<Object> _RPDescs = new List<Object>();;
+        private readonly static List<Object> _RPDescs = new List<Object>();
 
         public static void LoadFont()
         {
