@@ -729,6 +729,7 @@ namespace Capstones.UnityEditorEx
                 var asset = phfonts[i];
                 AssetDatabase.ImportAsset(asset.Substring(0, asset.Length - ".otf".Length) + ".phf.asset", ImportAssetOptions.ForceUpdate);
             }
+            ReplaceRuntimePHFonts();
         }
 
         private class CapsPHFontPostprocessor : AssetPostprocessor
