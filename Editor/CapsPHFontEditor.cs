@@ -50,7 +50,6 @@ namespace Capstones.UnityEditorEx
                 ParseCachedPHFonts();
                 if (CheckCachedPHFonts())
                 {
-                    Debug.LogError("Cached PHFont Info Changed!");
                     SaveCachedPHFonts();
                 }
             }
@@ -61,25 +60,31 @@ namespace Capstones.UnityEditorEx
             }
 
             CapsModEditor.ShouldAlreadyInit();
-            CapsPackageEditor.OnPackagesChanged += () =>
+            CapsPackageEditor.OnPackagesChanged += InitReplacement;
+            CapsDistributeEditor.OnDistributeFlagsChanged += ReplaceRuntimePHFonts;
+        }
+        private static void InitReplacement()
+        {
+            if (SafeInitializerUtils.IsInitializingInInitializeOnLoadAttribute)
             {
-                if (PlatDependant.IsFileExist("EditorOutput/Runtime/rfont.txt"))
+                EditorBridge.OnDelayedCallOnce += InitReplacement;
+                return;
+            }
+
+            if (PlatDependant.IsFileExist("EditorOutput/Runtime/rfont.txt"))
+            {
+                if (LoadCachedReplacement())
                 {
-                    if (LoadCachedReplacement())
-                    {
-                        Debug.LogError("Cached Font Replacement Changed!");
-                        SaveCachedReplacement();
-                    }
-                }
-                else
-                {
-                    CheckAllReplacements();
                     SaveCachedReplacement();
                 }
+            }
+            else
+            {
+                CheckAllReplacements();
+                SaveCachedReplacement();
+            }
 
-                ReplaceRuntimePHFonts();
-            };
-            CapsDistributeEditor.OnDistributeFlagsChanged += ReplaceRuntimePHFonts;
+            ReplaceRuntimePHFonts();
         }
         private static void ParseCachedPHFonts()
         {
@@ -351,7 +356,7 @@ namespace Capstones.UnityEditorEx
             {
                 rnode.list.Add(new JSONObject(JSONObject.Type.STRING) { str = asset });
             }
-            jo["debug"] = new JSONObject(JSONObject.Type.STRING) { str = Environment.StackTrace };
+            //jo["debug"] = new JSONObject(JSONObject.Type.STRING) { str = Environment.StackTrace };
             using (var sw = PlatDependant.OpenWriteText("EditorOutput/Runtime/rfont.txt"))
             {
                 sw.Write(jo.ToString(true));
