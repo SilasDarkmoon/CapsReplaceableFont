@@ -18,6 +18,7 @@ namespace Capstones.UnityEditorEx
 
         public void Prepare(string output)
         {
+            CapsPHFontEditor.ClearAndRebuildCache();
             CapsPHFontEditor.ReplaceAllPHFonts();
             _PHFonts.Clear();
             _PHFontDescs.Clear();

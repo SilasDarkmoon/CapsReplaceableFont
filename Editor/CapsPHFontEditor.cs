@@ -372,6 +372,14 @@ namespace Capstones.UnityEditorEx
             }
         }
 
+        public static void ClearAndRebuildCache()
+        {
+            CheckAllPHFonts();
+            SaveCachedPHFonts();
+            CheckAllReplacements();
+            SaveCachedReplacement();
+        }
+
         private static Dictionary<string, Dictionary<string, FontReplacement>> GetFontReplacementDMFDict(string fname)
         {
             // dist -> mod -> FontReplacement
@@ -727,10 +735,7 @@ namespace Capstones.UnityEditorEx
         [MenuItem("Mods/Client Update Fix - Font", priority = 100010)]
         public static void UpdateFixPHFont()
         {
-            CheckAllPHFonts();
-            SaveCachedPHFonts();
-            CheckAllReplacements();
-            SaveCachedReplacement();
+            ClearAndRebuildCache();
             ReplaceRuntimePHFonts();
         }
 
