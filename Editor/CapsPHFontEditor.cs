@@ -50,6 +50,7 @@ namespace Capstones.UnityEditorEx
                 ParseCachedPHFonts();
                 if (CheckCachedPHFonts())
                 {
+                    Debug.LogError("Cached PHFont Info Changed!");
                     SaveCachedPHFonts();
                 }
             }
@@ -66,6 +67,7 @@ namespace Capstones.UnityEditorEx
                 {
                     if (LoadCachedReplacement())
                     {
+                        Debug.LogError("Cached Font Replacement Changed!");
                         SaveCachedReplacement();
                     }
                 }
@@ -143,6 +145,8 @@ namespace Capstones.UnityEditorEx
         }
         private static void CheckAllPHFonts()
         {
+            _PHFontNameToAssetName.Clear();
+            _PHFontAssetNameToFontName.Clear();
             var assets = AssetDatabase.GetAllAssetPaths();
             for (int i = 0; i < assets.Length; ++i)
             {
@@ -272,7 +276,10 @@ namespace Capstones.UnityEditorEx
                         }
                     }
                 }
-                catch { }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
             }
             return false;
         }
@@ -344,6 +351,7 @@ namespace Capstones.UnityEditorEx
             {
                 rnode.list.Add(new JSONObject(JSONObject.Type.STRING) { str = asset });
             }
+            jo["debug"] = new JSONObject(JSONObject.Type.STRING) { str = Environment.StackTrace };
             using (var sw = PlatDependant.OpenWriteText("EditorOutput/Runtime/rfont.txt"))
             {
                 sw.Write(jo.ToString(true));
@@ -351,6 +359,8 @@ namespace Capstones.UnityEditorEx
         }
         private static void CheckAllReplacements()
         {
+            _FontReplacements.Clear();
+            _FontReplacementDescs.Clear();
             var assets = AssetDatabase.GetAllAssetPaths();
             for (int i = 0; i < assets.Length; ++i)
             {
@@ -717,24 +727,11 @@ namespace Capstones.UnityEditorEx
         [MenuItem("Mods/Client Update Fix - Font", priority = 100010)]
         public static void UpdateFixPHFont()
         {
-            var phfonts = _PHFontAssetNameToFontName.Keys.ToArray();
-            for (int i = 0; i < phfonts.Length; ++i)
-            {
-                var asset = phfonts[i];
-                AssetDatabase.DeleteAsset(asset);
-            }
-            AssetDatabase.Refresh();
-            for (int i = 0; i < phfonts.Length; ++i)
-            {
-                var asset = phfonts[i];
-                AssetDatabase.ImportAsset(asset.Substring(0, asset.Length - ".otf".Length) + ".phf.asset", ImportAssetOptions.ForceUpdate);
-            }
+            CheckAllPHFonts();
+            SaveCachedPHFonts();
+            CheckAllReplacements();
+            SaveCachedReplacement();
             ReplaceRuntimePHFonts();
-            for (int i = 0; i < phfonts.Length; ++i)
-            {
-                var asset = phfonts[i];
-                AssetDatabase.ImportAsset(asset, ImportAssetOptions.ForceUpdate);
-            }
         }
 
         private class CapsPHFontPostprocessor : AssetPostprocessor
@@ -813,6 +810,7 @@ namespace Capstones.UnityEditorEx
                 }
                 if (dirty || rdirty)
                 {
+                    ReplaceRuntimePHFonts();
                     AssetDatabase.Refresh();
                 }
             }
