@@ -8,15 +8,18 @@ using Capstones.UnityEngineEx;
 
 namespace Capstones.UnityEditorEx
 {
-    public class CapsPHFontResBuilder : CapsResBuilder.IResBuilderEx
+    [InitializeOnLoad]
+    public class CapsPHFontResBuilder : CapsResBuilder.BaseResBuilderEx<CapsPHFontResBuilder>
     {
+        private static HierarchicalInitializer _Initializer = new HierarchicalInitializer(0);
+
         private Dictionary<string, int> _PHFonts = new Dictionary<string, int>();
         private Dictionary<string, int> _PHFontDescs = new Dictionary<string, int>();
         private Dictionary<string, int> _ReplacementFonts = new Dictionary<string, int>();
         private Dictionary<string, int> _ReplacementDescs = new Dictionary<string, int>();
         private string _InfoFile;
 
-        public void Prepare(string output)
+        public override void Prepare(string output)
         {
             CapsPHFontEditor.ClearAndRebuildCache();
             CapsPHFontEditor.ReplaceAllPHFonts();
@@ -72,7 +75,7 @@ namespace Capstones.UnityEditorEx
                 PlatDependant.WriteAllText(infofile, _PHFontDescs.Count.ToString());
             }
         }
-        public void Cleanup()
+        public override void Cleanup()
         {
             _InfoFile = null;
             _PHFonts.Clear();
@@ -80,9 +83,6 @@ namespace Capstones.UnityEditorEx
             _ReplacementFonts.Clear();
             _ReplacementDescs.Clear();
             CapsPHFontEditor.ReplaceRuntimePHFonts();
-        }
-        public void OnSuccess()
-        {
         }
 
         private class BuildingItemInfo
@@ -94,7 +94,7 @@ namespace Capstones.UnityEditorEx
             public string Bundle;
         }
         private BuildingItemInfo _Building;
-        public string FormatBundleName(string asset, string mod, string dist, string norm)
+        public override string FormatBundleName(string asset, string mod, string dist, string norm)
         {
             _Building = null;
             if (string.Equals(asset, _InfoFile) ||  _PHFonts.ContainsKey(asset) || _PHFontDescs.ContainsKey(asset) || _ReplacementFonts.ContainsKey(asset) || _ReplacementDescs.ContainsKey(asset))
@@ -111,7 +111,7 @@ namespace Capstones.UnityEditorEx
             }
             return null;
         }
-        public bool CreateItem(CapsResManifestNode node)
+        public override bool CreateItem(CapsResManifestNode node)
         {
             if (_Building != null)
             {
@@ -119,7 +119,7 @@ namespace Capstones.UnityEditorEx
             }
             return false;
         }
-        public void ModifyItem(CapsResManifestItem item)
+        public override void ModifyItem(CapsResManifestItem item)
         {
             if (_Building != null)
             {
@@ -221,20 +221,6 @@ namespace Capstones.UnityEditorEx
                     }
                 }
             }
-        }
-
-        public void GenerateBuildWork(string bundleName, IList<string> assets, ref AssetBundleBuild abwork, CapsResBuilder.CapsResBuildWork modwork, int abindex)
-        {
-        }
-    }
-
-    [InitializeOnLoad]
-    public static class CapsPHFontResBuilderEntry
-    {
-        private static CapsPHFontResBuilder _Builder = new CapsPHFontResBuilder();
-        static CapsPHFontResBuilderEntry()
-        {
-            CapsResBuilder.ResBuilderEx.Add(_Builder);
         }
     }
 }
