@@ -52,7 +52,7 @@ namespace Capstones.UnityEngineEx
 
         private class CapsPHFontLoaderBundleLoaderEx : ResManager.IAssetBundleLoaderEx
         {
-            public bool LoadAssetBundle(string mod, string name, bool isContainingBundle, out ResManager.AssetBundleInfo bi)
+            public bool LoadAssetBundle(string mod, string name, bool asyncLoad, bool isContainingBundle, out ResManager.AssetBundleInfo bi)
             {
                 bi = null;
                 if (!isContainingBundle && name.EndsWith(".=.ab"))
