@@ -43,6 +43,20 @@ namespace Capstones.UnityEditorEx
             return asset ?? "CapstonesPHFont00001";
         }
 
+        public static Dictionary<string, string> GetFontReplacementPaths()
+        {
+            Dictionary<string, string> result = new Dictionary<string, string>();
+            foreach (var kvp in _PHFontNameToAssetName)
+            {
+                List<string> flags = new List<string>() { "" };
+                flags.AddRange(ResManager.GetValidDistributeFlags());
+
+                var rfont = GetFirstReplacementFontPath(kvp.Key, flags.ToArray());
+                result[kvp.Value] = rfont;
+            }
+            return result;
+        }
+
         static CapsPHFontEditor()
         {
             if (PlatDependant.IsFileExist("EditorOutput/Runtime/phfont.txt"))
@@ -459,6 +473,38 @@ namespace Capstones.UnityEditorEx
                 }
             }
             return list;
+        }
+        private static string GetFirstReplacementFontPath(string fname, IList<string> flags)
+        {
+            var dmfr = GetFontReplacementDMFDict(fname);
+            if (flags != null)
+            {
+                for (int i = flags.Count - 1; i >= 0; --i)
+                {
+                    var flag = flags[i];
+                    Dictionary<string, FontReplacement> mdict;
+                    if (dmfr.TryGetValue(flag, out mdict))
+                    {
+                        for (int j = flags.Count - 1; j >= 0; --j)
+                        {
+                            var mod = flags[j];
+                            if (mdict.ContainsKey(mod))
+                            {
+                                var info = mdict[mod];
+                                if (info != null && info.SubstituteFont != null)
+                                {
+                                    var path = AssetDatabase.GetAssetPath(info.SubstituteFont);
+                                    if (!string.IsNullOrEmpty(path))
+                                    {
+                                        return path;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
         }
         private static bool ListEquals(IList<string> lsta, IList<string> lstb)
         {

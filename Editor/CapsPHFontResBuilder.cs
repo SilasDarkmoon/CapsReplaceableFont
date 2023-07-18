@@ -174,6 +174,29 @@ namespace Capstones.UnityEditorEx
                         newnode.Item = newitem;
                     }
                 }
+                else if (_PHFonts.ContainsKey(asset))
+                {
+                    newpath = rootpath + "font";
+                    newnode = item.Manifest.AddOrGetItem(newpath);
+                    if (newnode.Item == null)
+                    {
+                        newitem = new CapsResManifestItem(newnode);
+                        newitem.Type = (int)CapsResManifestItemType.Redirect;
+                        newitem.BRef = item.BRef;
+                        newitem.Ref = item;
+                        newnode.Item = newitem;
+                    }
+                    newpath = rootpath + "font" + _PHFonts[asset].ToString();
+                    newnode = item.Manifest.AddOrGetItem(newpath);
+                    if (newnode.Item == null)
+                    {
+                        newitem = new CapsResManifestItem(newnode);
+                        newitem.Type = (int)CapsResManifestItemType.Redirect;
+                        newitem.BRef = item.BRef;
+                        newitem.Ref = item;
+                        newnode.Item = newitem;
+                    }
+                }
                 else if (_PHFontDescs.ContainsKey(asset))
                 {
                     newpath = rootpath + "placeholder";
