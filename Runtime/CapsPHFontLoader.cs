@@ -69,7 +69,7 @@ namespace Capstones.UnityEngineEx
         {
             ResManagerAB.AssetBundleLoaderEx.Add(__CapsPHFontLoaderBundleLoaderEx);
 
-            if (ResManager.ResLoader is ResManagerAB.ClientResLoader)
+            if (ResManager.IsClientResLoader)
             {
                 ResManager.AddInitItem(ResManager.LifetimeOrders.PostResLoader - 5, LoadFont);
             }
