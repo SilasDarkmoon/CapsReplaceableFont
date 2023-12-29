@@ -50,9 +50,9 @@ namespace Capstones.UnityEngineEx
             }
         }
 
-        private class CapsPHFontLoaderBundleLoaderEx : ResManager.IAssetBundleLoaderEx
+        private class CapsPHFontLoaderBundleLoaderEx : ResManagerAB.IAssetBundleLoaderEx
         {
-            public bool LoadAssetBundle(string mod, string name, bool asyncLoad, bool isContainingBundle, out ResManager.AssetBundleInfo bi)
+            public bool LoadAssetBundle(string mod, string name, bool asyncLoad, bool isContainingBundle, out ResManagerAB.AssetBundleInfo bi)
             {
                 bi = null;
                 if (!isContainingBundle && name.EndsWith(".=.ab"))
@@ -67,9 +67,9 @@ namespace Capstones.UnityEngineEx
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void OnUnityStart()
         {
-            ResManager.AssetBundleLoaderEx.Add(__CapsPHFontLoaderBundleLoaderEx);
+            ResManagerAB.AssetBundleLoaderEx.Add(__CapsPHFontLoaderBundleLoaderEx);
 
-            if (ResManager.ResLoader is ResManager.ClientResLoader)
+            if (ResManager.ResLoader is ResManagerAB.ClientResLoader)
             {
                 ResManager.AddInitItem(ResManager.LifetimeOrders.PostResLoader - 5, LoadFont);
             }

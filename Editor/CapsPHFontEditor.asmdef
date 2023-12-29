@@ -1,5 +1,6 @@
 {
     "name": "CapsPHFontEditor",
+    "rootNamespace": "",
     "references": [
         "ResManager",
         "ResManagerEditor",
@@ -7,7 +8,9 @@
         "CapsPHFont",
         "ResManagerEditorEntry",
         "ResManagerEntry",
-        "ResManagerEditor.ResBuilder"
+        "ResManagerEditor.ResBuilder",
+        "CapsModsEditor",
+        "CapsMods"
     ],
     "includePlatforms": [
         "Editor"
